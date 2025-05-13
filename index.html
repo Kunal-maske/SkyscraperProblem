@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skyscraper Puzzle</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 800px;
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 24px;
+    }
+    
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .btn {
+      background-color: #3b82f6;
+      color: white;
+      padding: 4px 16px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .btn:hover {
+      background-color: #2563eb;
+    }
+    
+    .board-container {
+      margin-bottom: 32px;
+    }
+    
+    .board-row {
+      display: flex;
+      justify-content: center;
+    }
+    
+    .cell, .clue-cell {
+      width: 48px;
+      height: 48px;
+      border: 1px solid #d1d5db;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    
+    .cell {
+      background-color: white;
+      cursor: pointer;
+    }
+    
+    .cell.selected {
+      background-color: #bfdbfe;
+    }
+    
+    .clue-cell {
+      background-color: #e2e2e2;
+    }
+    
+    .empty-cell {
+      width: 48px;
+      height: 48px;
+    }
+    
+    .number-input {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    
+    .number-btn {
+      background-color: #e5e7eb;
+      width: 48px;
+      height: 48px;
+      border-radius: 4px;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    
+    .number-btn:hover {
+      background-color: #d1d5db;
+    }
+    
+    .game-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 16px;
+      justify-content: center;
+    }
+    
+    .btn-clear {
+      background-color: #ef4444;
+    }
+    
+    .btn-clear:hover {
+      background-color: #dc2626;
+    }
+    
+    .btn-check {
+      background-color: #10b981;
+    }
+    
+    .btn-check:hover {
+      background-color: #059669;
+    }
+    
+    .btn-hint {
+      background-color: #f59e0b;
+    }
+    
+    .btn-hint:hover {
+      background-color: #d97706;
+    }
+    
+    .btn-solve {
+      background-color: #8b5cf6;
+    }
+    
+    .btn-solve:hover {
+      background-color: #7c3aed;
+    }
+    
+    .message {
+      padding: 8px;
+      border-radius: 4px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    
+    .message.success {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+    
+    .message.error {
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+    
+    .message.info {
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .instructions {
+      margin-top: 32px;
+      padding: 16px;
+      background-color: #f3f4f6;
+      border-radius: 4px;
+      max-width: 600px;
+    }
+    
+    .instructions-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    
+    .instructions-list {
+      padding-left: 24px;
+      margin: 0;
+    }
+    
+    .instructions-list li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">Skyscraper Puzzle</h1>
+    
+    <div class="controls">
+      <button id="next-puzzle-btn" class="btn">Next Puzzle (<span id="puzzle-index">1</span>/<span id="puzzle-count">15</span>)</button>
+      <button id="reset-btn" class="btn">Reset</button>
+    </div>
+    
+    <div id="board-container" class="board-container">
+      <!-- Board will be generated here -->
+    </div>
+    
+    <div class="number-input" id="number-input">
+      <!-- Number buttons will be generated here -->
+    </div>
+    
+    <div class="game-controls">
+      <button id="clear-btn" class="btn btn-clear">Clear Board</button>
+      <button id="check-btn" class="btn btn-check">Check Solution</button>
+      <button id="hint-btn" class="btn btn-hint">Get Hint</button>
+      <button id="solve-btn" class="btn btn-solve">Show Solution</button>
+    </div>
+    
+    <div id="message" class="message" style="display: none;"></div>
+    
+    <div class="instructions">
+      <h2 class="instructions-title">How to Play:</h2>
+      <ol class="instructions-list">
+        <li>Click on a cell to select it, then click a number to place it.</li>
+        <li>Each row and column must contain numbers 1 to 4 exactly once (like Sudoku).</li>
+        <li>The numbers around the grid tell you how many buildings are visible from that direction.</li>
+        <li>A taller building hides shorter buildings behind it.</li>
+        <li>The number in a cell represents the height of a building (1 = lowest, 4 = tallest).</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // Constants
+    const SIZE = 4;
+    
+    // Game state
+    let board = [];
+    let topClues = [];
+    let rightClues = [];
+    let bottomClues = [];
+    let leftClues = [];
+    let selectedCell = null;
+    let isValid = null;
+    let isSolved = false;
+    let puzzleIndex = 0;
+    let shuffledIndices = [];
+    
+    // Predefined puzzles
+    const verifiedPuzzles = [
+      // First set of puzzles
+      {
+        grid: [
+          [1, 2, 3, 4],
+          [2, 1, 4, 3],
+          [3, 4, 1, 2],
+          [4, 3, 2, 1]
+        ],
+        topClues: [4, 2, 2, 1],
+        rightClues: [1, 2, 2, 4],
+        bottomClues: [1, 2, 2, 4],
+        leftClues: [4, 2, 2, 1]
+      },
+      {
+        grid: [
+          [1, 2, 3, 4],
+          [2, 1, 4, 3],
+          [3, 4, 2, 1],
+          [4, 3, 1, 2]
+        ],
+        topClues: [4, 2, 2, 1],
+        rightClues: [1, 2, 3, 3],
+        bottomClues: [1, 2, 3, 3],
+        leftClues: [4, 2, 2, 1]
+      },
+      {
+        grid: [
+          [1, 2, 3, 4],
+          [2, 1, 4, 3],
+          [4, 3, 1, 2],
+          [3, 4, 2, 1]
+        ],
+        topClues: [3, 3, 2, 1],
+        rightClues: [1, 2, 3, 3],
+        bottomClues: [2, 1, 2, 4],
+        leftClues: [4, 2, 1, 2]
+      },
+      {
+        grid: [
+          [1, 2, 3, 4],
+          [2, 3, 4, 1],
+          [3, 4, 1, 2],
+          [4, 1, 2, 3]
+        ],
+        topClues: [4, 3, 2, 1],
+        rightClues: [1, 2, 2, 2],
+        bottomClues: [1, 2, 2, 2],
+        leftClues: [4, 3, 2, 1]
+      },
+      {
+        grid: [
+          [1, 2, 3, 4],
+          [3, 4, 1, 2],
+          [2, 3, 4, 1],
+          [4, 1, 2, 3]
+        ],
+        topClues: [3, 2, 2, 1],
+        rightClues: [1, 2, 2, 2],
+        bottomClues: [1, 3, 2, 2],
+        leftClues: [4, 2, 3, 1]
+      },
+      // Second set of puzzles - starting with [3, 1, 4, 2]
+      {
+        grid: [
+          [3, 1, 4, 2],
+          [1, 3, 2, 4],
+          [2, 4, 3, 1],
+          [4, 2, 1, 3]
+        ],
+        topClues: [2, 3, 1, 2],
+        rightClues: [2, 1, 3, 2],
+        bottomClues: [1, 2, 3, 2],
+        leftClues: [2, 3, 2, 1]
+      },
+      {
+        grid: [
+          [3, 1, 4, 2],
+          [1, 3, 2, 4],
+          [4, 2, 1, 3],
+          [2, 4, 3, 1]
+        ],
+        topClues: [2, 3, 1, 2],
+        rightClues: [2, 1, 2, 3],
+        bottomClues: [2, 1, 2, 3],
+        leftClues: [2, 3, 1, 2]
+      },
+      {
+        grid: [
+          [3, 1, 4, 2],
+          [1, 4, 2, 3],
+          [2, 3, 1, 4],
+          [4, 2, 3, 1]
+        ],
+        topClues: [2, 2, 1, 3],
+        rightClues: [2, 2, 1, 3],
+        bottomClues: [1, 3, 2, 2],
+        leftClues: [2, 2, 3, 1]
+      },
+      {
+        grid: [
+          [3, 1, 4, 2],
+          [2, 4, 1, 3],
+          [1, 2, 3, 4],
+          [4, 3, 2, 1]
+        ],
+        topClues: [2, 2, 1, 3],
+        rightClues: [2, 2, 4, 1],
+        bottomClues: [1, 2, 3, 2],
+        leftClues: [2, 2, 4, 1]
+      },
+      {
+        grid: [
+          [3, 1, 4, 2],
+          [2, 4, 3, 1],
+          [4, 2, 1, 3],
+          [1, 3, 2, 4]
+        ],
+        topClues: [2, 2, 1, 2],
+        rightClues: [2, 3, 1, 2],
+        bottomClues: [1, 3, 4, 2],
+        leftClues: [2, 2, 3, 1]
+      },
+      // Additional puzzles from the second set
+      {
+        grid: [
+          [3, 1, 4, 2],
+          [4, 2, 1, 3],
+          [1, 3, 2, 4],
+          [2, 4, 3, 1]
+        ],
+        topClues: [2, 4, 1, 3],
+        rightClues: [2, 2, 1, 3],
+        bottomClues: [2, 1, 2, 2],
+        leftClues: [2, 1, 3, 2]
+      },
+      {
+        grid: [
+          [3, 1, 4, 2],
+          [4, 2, 3, 1],
+          [2, 3, 1, 4],
+          [1, 4, 2, 3]
+        ],
+        topClues: [2, 3, 1, 3],
+        rightClues: [2, 2, 3, 1],
+        bottomClues: [3, 2, 3, 1],
+        leftClues: [2, 1, 2, 3]
+      },
+      // Adding from the 3rd set - starting with [3, 2, 1, 4]
+      {
+        grid: [
+          [3, 2, 1, 4],
+          [1, 4, 2, 3],
+          [2, 3, 4, 1],
+          [4, 1, 3, 2]
+        ],
+        topClues: [2, 2, 3, 1],
+        rightClues: [1, 2, 2, 3],
+        bottomClues: [1, 3, 2, 3],
+        leftClues: [2, 2, 3, 1]
+      },
+      {
+        grid: [
+          [3, 2, 1, 4],
+          [1, 4, 3, 2],
+          [4, 1, 2, 3],
+          [2, 3, 4, 1]
+        ],
+        topClues: [2, 2, 3, 1],
+        rightClues: [1, 3, 2, 4],
+        bottomClues: [2, 3, 1, 2],
+        leftClues: [2, 2, 1, 2]
+      },
+      {
+        grid: [
+          [3, 2, 1, 4],
+          [1, 4, 3, 2],
+          [2, 1, 4, 3],
+          [4, 3, 2, 1]
+        ],
+        topClues: [2, 2, 3, 1],
+        rightClues: [1, 3, 2, 4],
+        bottomClues: [1, 2, 2, 3],
+        leftClues: [2, 2, 2, 1]
+      }
+    ];
+    
+    // DOM Elements
+    const boardContainer = document.getElementById('board-container');
+    const messageEl = document.getElementById('message');
+    const puzzleIndexEl = document.getElementById('puzzle-index');
+    const puzzleCountEl = document.getElementById('puzzle-count');
+    const numberInputEl = document.getElementById('number-input');
+    
+    // Initialize the game
+    function init() {
+      // Create shuffled indices
+      shuffleArray();
+      
+      // Update puzzle counter
+      puzzleIndexEl.textContent = puzzleIndex + 1;
+      puzzleCountEl.textContent = verifiedPuzzles.length;
+      
+      // Create number input buttons
+      createNumberButtons();
+      
+      // Initialize first puzzle
+      initializeGame();
+      
+      // Add event listeners
+      document.getElementById('next-puzzle-btn').addEventListener('click', handleNextPuzzle);
+      document.getElementById('reset-btn').addEventListener('click', initializeGame);
+      document.getElementById('clear-btn').addEventListener('click', handleClear);
+      document.getElementById('check-btn').addEventListener('click', validateBoard);
+      document.getElementById('hint-btn').addEventListener('click', handleHint);
+      document.getElementById('solve-btn').addEventListener('click', handleSolvePuzzle);
+    }
+    
+    // Create number input buttons
+    function createNumberButtons() {
+      numberInputEl.innerHTML = '';
+      
+      for (let i = 1; i <= SIZE; i++) {
+        const button = document.createElement('button');
+        button.className = 'number-btn';
+        button.textContent = i;
+        button.addEventListener('click', () => handleNumberInput(i));
+        numberInputEl.appendChild(button);
+      }
+    }
+    
+    // Shuffle array using Fisher-Yates algorithm
+    function shuffleArray() {
+      shuffledIndices = Array.from({ length: verifiedPuzzles.length }, (_, i) => i);
+      
+      for (let i = shuffledIndices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledIndices[i], shuffledIndices[j]] = [shuffledIndices[j], shuffledIndices[i]];
+      }
+    }
+    
+    // Initialize game with current puzzle
+    function initializeGame() {
+      // Create empty board
+      board = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
+      
+      // Get the current puzzle based on shuffled index
+      const currentIndex = shuffledIndices[puzzleIndex % shuffledIndices.length];
+      const puzzle = verifiedPuzzles[currentIndex];
+      
+      // Set clues
+      topClues = puzzle.topClues;
+      rightClues = puzzle.rightClues;
+      bottomClues = puzzle.bottomClues;
+      leftClues = puzzle.leftClues;
+      
+      // Reset state
+      selectedCell = null;
+      isValid = null;
+      isSolved = false;
+      
+      // Render board
+      renderBoard();
+      
+      // Hide message
+      hideMessage();
+    }
+    
+    // Render the full board with clues
+    function renderBoard() {
+      boardContainer.innerHTML = '';
+      
+      // Top clues row
+      const topRow = document.createElement('div');
+      topRow.className = 'board-row';
+      
+      // Empty top-left corner
+      const emptyCorner1 = document.createElement('div');
+      emptyCorner1.className = 'empty-cell';
+      topRow.appendChild(emptyCorner1);
+      
+      // Top clues
+      for (let i = 0; i < SIZE; i++) {
+        const clueCell = document.createElement('div');
+        clueCell.className = 'clue-cell';
+        
+        if (topClues[i] > 0) {
+          clueCell.textContent = topClues[i] + ' ▼';
+        }
+        
+        topRow.appendChild(clueCell);
+      }
+      
+      // Empty top-right corner
+      const emptyCorner2 = document.createElement('div');
+      emptyCorner2.className = 'empty-cell';
+      topRow.appendChild(emptyCorner2);
+      
+      boardContainer.appendChild(topRow);
+      
+      // Main board rows with left and right clues
+      for (let row = 0; row < SIZE; row++) {
+        const boardRow = document.createElement('div');
+        boardRow.className = 'board-row';
+        
+        // Left clue
+        const leftClue = document.createElement('div');
+        leftClue.className = 'clue-cell';
+        
+        if (leftClues[row] > 0) {
+          leftClue.textContent = leftClues[row] + ' ▶';
+        }
+        
+        boardRow.appendChild(leftClue);
+        
+        // Board cells
+        for (let col = 0; col < SIZE; col++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          
+          if (board[row][col] !== 0) {
+            cell.textContent = board[row][col];
+          }
+          
+          if (selectedCell && selectedCell.row === row && selectedCell.col === col) {
+            cell.classList.add('selected');
+          }
+          
+          cell.addEventListener('click', () => handleCellClick(row, col));
+          boardRow.appendChild(cell);
+        }
+        
+        // Right clue
+        const rightClue = document.createElement('div');
+        rightClue.className = 'clue-cell';
+        
+        if (rightClues[row] > 0) {
+          rightClue.textContent = rightClues[row] + ' ◀';
+        }
+        
+        boardRow.appendChild(rightClue);
+        
+        boardContainer.appendChild(boardRow);
+      }
+      
+      // Bottom clues row
+      const bottomRow = document.createElement('div');
+      bottomRow.className = 'board-row';
+      
+      // Empty bottom-left corner
+      const emptyCorner3 = document.createElement('div');
+      emptyCorner3.className = 'empty-cell';
+      bottomRow.appendChild(emptyCorner3);
+      
+      // Bottom clues
+      for (let i = 0; i < SIZE; i++) {
+        const clueCell = document.createElement('div');
+        clueCell.className = 'clue-cell';
+        
+        if (bottomClues[i] > 0) {
+          clueCell.textContent = bottomClues[i] + ' ▲';
+        }
+        
+        bottomRow.appendChild(clueCell);
+      }
+      
+      // Empty bottom-right corner
+      const emptyCorner4 = document.createElement('div');
+      emptyCorner4.className = 'empty-cell';
+      bottomRow.appendChild(emptyCorner4);
+      
+      boardContainer.appendChild(bottomRow);
+    }
+    
+    // Handle cell click
+    function handleCellClick(row, col) {
+      selectedCell = { row, col };
+      renderBoard();
+    }
+    
+    // Handle number input
+    function handleNumberInput(num) {
+      if (!selectedCell) return;
+      
+      const { row, col } = selectedCell;
+      
+      // If same number is clicked, clear the cell
+      if (board[row][col] === num) {
+        board[row][col] = 0;
+      } else {
+        board[row][col] = num;
+      }
+      
+      renderBoard();
+      validateBoard();
+    }
+    
+    // Clear the board
+    function handleClear() {
+      board = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
+      isValid = null;
+      isSolved = false;
+      
+      hideMessage();
+      renderBoard();
+    }
+    
+    // Next puzzle
+    function handleNextPuzzle() {
+      puzzleIndex = (puzzleIndex + 1) % verifiedPuzzles.length;
+      puzzleIndexEl.textContent = puzzleIndex + 1;
+      initializeGame();
+    }
+    
+    // Show solution
+    function handleSolvePuzzle() {
+      const currentIndex = shuffledIndices[puzzleIndex % shuffledIndices.length];
+      const solution = verifiedPuzzles[currentIndex].grid;
+      
+      // Deep copy the solution
+      board = JSON.parse(JSON.stringify(solution));
+      
+      renderBoard();
+      validateBoard();
+    }
+    
+    // Get a hint
+    function handleHint() {
+      const currentIndex = shuffledIndices[puzzleIndex % shuffledIndices.length];
+      const solution = verifiedPuzzles[currentIndex].grid;
+      
+      let hintGiven = false;
+      
+      // Find an empty cell or incorrect cell and provide a hint
+      for (let i = 0; i < SIZE && !hintGiven; i++) {
+        for (let j = 0; j < SIZE && !hintGiven; j++) {
+          if (board[i][j] === 0 || board[i][j] !== solution[i][j]) {
+            board[i][j] = solution[i][j];
+            hintGiven = true;
+          }
+        }
+      }
+      
+      if (hintGiven) {
+        renderBoard();
+        validateBoard();
+        showMessage('Here\'s a hint!', 'info');
+      } else {
+        showMessage('No more hints needed!', 'info');
+      }
+    }
+    
+    // Validate the board
+    function validateBoard() {
+      // Check if the board is filled
+      const isFilled = board.every(row => row.every(cell => cell !== 0));
+      
+      if (!isFilled) {
+        hideMessage();
+        return;
+      }
+      
+      // Check rows and columns for uniqueness
+      let valid = true;
+      
+      // Check rows
+      for (let i = 0; i < SIZE; i++) {
+        const row = board[i];
+        const rowSet = new Set(row);
+        if (rowSet.size !== SIZE || rowSet.has(0)) {
+          valid = false;
+          break;
+        }
+      }
+      
+      // Check columns
+      for (let j = 0; j < SIZE; j++) {
+        const col = board.map(row => row[j]);
+        const colSet = new Set(col);
+        if (colSet.size !== SIZE || colSet.has(0)) {
+          valid = false;
+          break;
+        }
+      }
+      
+      // If not valid based on uniqueness, no need to check visibility
+      if (!valid) {
+        isValid = false;
+        isSolved = false;
+        showMessage('Each row and column must contain unique numbers from 1 to ' + SIZE, 'error');
+        return;
+      }
+      
+      // Check visibility from each direction
+      const topVisible = calculateVisibleBuildings('top');
+      const rightVisible = calculateVisibleBuildings('right');
+      const bottomVisible = calculateVisibleBuildings('bottom');
+      const leftVisible = calculateVisibleBuildings('left');
+      
+      // Compare with clues
+      for (let i = 0; i < SIZE; i++) {
+        if (
+          (topClues[i] > 0 && topVisible[i] !== topClues[i]) ||
+          (rightClues[i] > 0 && rightVisible[i] !== rightClues[i]) ||
+          (bottomClues[i] > 0 && bottomVisible[i] !== bottomClues[i]) ||
+          (leftClues[i] > 0 && leftVisible[i] !== leftClues[i])
+        ) {
+          valid = false;
+          break;
+        }
+      }
+      
+      isValid = valid;
+      isSolved = valid;
+      
+      if (valid) {
+        showMessage('Puzzle solved correctly!', 'success');
+      } else if (isFilled) {
+        showMessage('Visibility clues don\'t match. Try again!', 'error');
+      }
+    }
+    
+    // Calculate visible buildings from a direction
+    function calculateVisibleBuildings(direction) {
+      const visible = [];
+      
+      switch (direction) {
+        case 'top':
+          for (let col = 0; col < SIZE; col++) {
+            let maxHeight = 0;
+            let count = 0;
+            for (let row = 0; row < SIZE; row++) {
+              const height = board[row][col];
+              if (height > maxHeight) {
+                maxHeight = height;
+                count++;
+              }
+            }
+            visible.push(count);
+          }
+          break;
+          
+        case 'right':
+          for (let row = 0; row < SIZE; row++) {
+            let maxHeight = 0;
+            let count = 0;
+            for (let col = SIZE - 1; col >= 0; col--) {
+              const height = board[row][col];
+              if (height > maxHeight) {
+                maxHeight = height;
+                count++;
+              }
+            }
+            visible.push(count);
+          }
+          break;
+          
+        case 'bottom':
+          for (let col = 0; col < SIZE; col++) {
+            let maxHeight = 0;
+            let count = 0;
+            for (let row = SIZE - 1; row >= 0; row--) {
+              const height = board[row][col];
+              if (height > maxHeight) {
+                maxHeight = height;
+                count++;
+              }
+            }
+            visible.push(count);
+          }
+          break;
+          
+        case 'left':
+          for (let row = 0; row < SIZE; row++) {
+            let maxHeight = 0;
+            let count = 0;
+            for (let col = 0; col < SIZE; col++) {
+              const height = board[row][col];
+              if (height > maxHeight) {
+                maxHeight = height;
+                count++;
+              }
+            }
+            visible.push(count);
+          }
+          break;
+      }
+      
+      return visible;
+    }
+    
+    // Show message with status
+    function showMessage(text, type) {
+      messageEl.textContent = text;
+      messageEl.className = 'message ' + type;
+      messageEl.style.display = 'block';
+    }
+    
+    // Hide message
+    function hideMessage() {
+      messageEl.style.display = 'none';
+    }
+    
+    // Initialize the game when the page loads
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>
