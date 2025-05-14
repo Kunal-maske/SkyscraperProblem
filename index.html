@@ -32,6 +32,7 @@
       align-items: center;
       gap: 16px;
       margin-bottom: 16px;
+      flex-wrap: wrap;
     }
     
     .btn {
@@ -90,6 +91,7 @@
       gap: 8px;
       justify-content: center;
       margin-bottom: 16px;
+      flex-wrap: wrap;
     }
     
     .number-btn {
@@ -194,11 +196,36 @@
     .instructions-list li {
       margin-bottom: 8px;
     }
+    
+    .board-size-control {
+      margin-bottom: 16px;
+      display: flex;
+      gap: 16px;
+    }
+    
+    .size-btn {
+      background-color: #e5e7eb;
+      color: black;
+      padding: 4px 16px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .size-btn.active {
+      background-color: #3b82f6;
+      color: white;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1 class="title">Skyscraper Puzzle</h1>
+    
+    <div class="board-size-control">
+      <button id="size-4-btn" class="size-btn active">4x4</button>
+      <button id="size-5-btn" class="size-btn">5x5</button>
+    </div>
     
     <div class="controls">
       <button id="next-puzzle-btn" class="btn">Next Puzzle (<span id="puzzle-index">1</span>/<span id="puzzle-count">15</span>)</button>
@@ -226,17 +253,17 @@
       <h2 class="instructions-title">How to Play:</h2>
       <ol class="instructions-list">
         <li>Click on a cell to select it, then click a number to place it.</li>
-        <li>Each row and column must contain numbers 1 to 4 exactly once (like Sudoku).</li>
+        <li>Each row and column must contain numbers 1 to <span id="board-size-display">4</span> exactly once (like Sudoku).</li>
         <li>The numbers around the grid tell you how many buildings are visible from that direction.</li>
         <li>A taller building hides shorter buildings behind it.</li>
-        <li>The number in a cell represents the height of a building (1 = lowest, 4 = tallest).</li>
+        <li>The number in a cell represents the height of a building (1 = lowest, <span id="max-height-display">4</span> = tallest).</li>
       </ol>
     </div>
   </div>
 
   <script>
     // Constants
-    const SIZE = 4;
+    let SIZE = 4; // Default size, can be changed to 5
     
     // Game state
     let board = [];
@@ -250,8 +277,8 @@
     let puzzleIndex = 0;
     let shuffledIndices = [];
     
-    // Predefined puzzles
-    const verifiedPuzzles = [
+    // Predefined puzzles for 4x4
+    const verifiedPuzzles4x4 = [
       // First set of puzzles
       {
         grid: [
@@ -438,21 +465,105 @@
       }
     ];
     
+    // Predefined puzzles for 5x5
+    const verifiedPuzzles5x5 = [
+      // Puzzle 1
+      {
+        grid: [
+          [4, 3, 5, 1, 2],
+          [2, 1, 3, 5, 4],
+          [5, 2, 4, 3, 1],
+          [1, 5, 2, 4, 3],
+          [3, 4, 1, 2, 5]
+        ],
+        topClues: [2, 2, 1, 2, 3],
+        rightClues: [2, 2, 4, 3, 1],
+        bottomClues: [2, 2, 4, 3, 1],
+        leftClues: [2, 3, 1, 2, 3]
+      },
+      // Puzzle 2
+      {
+        grid: [
+          [2, 3, 4, 1, 5],
+          [1, 2, 5, 4, 3],
+          [3, 4, 2, 5, 1],
+          [4, 5, 1, 3, 2],
+          [5, 1, 3, 2, 4]
+        ],
+        topClues: [4, 3, 2, 3, 1],
+        rightClues: [1, 3, 2, 3, 2],
+        bottomClues: [1, 2, 2, 3, 2],
+        leftClues: [4, 3, 3, 2, 1]
+      },
+      // Puzzle 3
+      {
+        grid: [
+          [2, 5, 4, 3, 1],
+          [3, 1, 5, 4, 2],
+          [1, 2, 3, 5, 4],
+          [5, 4, 1, 2, 3],
+          [4, 3, 2, 1, 5]
+        ],
+        topClues: [3, 1, 2, 3, 4],
+        rightClues: [4, 3, 2, 3, 1],
+        bottomClues: [2, 3, 3, 3, 1],
+        leftClues: [2, 2, 4, 1, 2]
+      },
+      // Puzzle 4
+      {
+        grid: [
+          [1, 5, 4, 2, 3],
+          [4, 1, 5, 3, 2],
+          [2, 3, 1, 4, 5],
+          [3, 4, 2, 5, 1],
+          [5, 2, 3, 1, 4]
+        ],
+        topClues: [3, 1, 2, 4, 2],
+        rightClues: [3, 3, 1, 2, 2],
+        bottomClues: [1, 3, 2, 2, 2],
+        leftClues: [2, 2, 4, 3, 1]
+      },
+      // Puzzle 5
+      {
+        grid: [
+          [5, 4, 1, 3, 2],
+          [1, 3, 2, 5, 4],
+          [3, 2, 5, 4, 1],
+          [2, 5, 4, 1, 3],
+          [4, 1, 3, 2, 5]
+        ],
+        topClues: [1, 2, 3, 2, 3],
+        rightClues: [4, 2, 3, 3, 1],
+        bottomClues: [2, 2, 3, 3, 1],
+        leftClues: [1, 3, 2, 2, 2]
+      }
+    ];
+    
+    // Current puzzles based on board size
+    let currentPuzzles = verifiedPuzzles4x4;
+    
     // DOM Elements
     const boardContainer = document.getElementById('board-container');
     const messageEl = document.getElementById('message');
     const puzzleIndexEl = document.getElementById('puzzle-index');
     const puzzleCountEl = document.getElementById('puzzle-count');
     const numberInputEl = document.getElementById('number-input');
+    const size4Btn = document.getElementById('size-4-btn');
+    const size5Btn = document.getElementById('size-5-btn');
+    const boardSizeDisplay = document.getElementById('board-size-display');
+    const maxHeightDisplay = document.getElementById('max-height-display');
     
     // Initialize the game
     function init() {
+      // Set up board size buttons
+      size4Btn.addEventListener('click', () => changeBoardSize(4));
+      size5Btn.addEventListener('click', () => changeBoardSize(5));
+      
       // Create shuffled indices
       shuffleArray();
       
       // Update puzzle counter
-      puzzleIndexEl.textContent = puzzleIndex + 1;
-      puzzleCountEl.textContent = verifiedPuzzles.length;
+      updatePuzzleCounter();
       
       // Create number input buttons
       createNumberButtons();
@@ -467,6 +578,49 @@
       document.getElementById('check-btn').addEventListener('click', validateBoard);
       document.getElementById('hint-btn').addEventListener('click', handleHint);
       document.getElementById('solve-btn').addEventListener('click', handleSolvePuzzle);
+    }
+    
+    // Change board size
+    function changeBoardSize(newSize) {
+      if (SIZE === newSize) return;
+      
+      SIZE = newSize;
+      
+      // Update active button
+      if (SIZE === 4) {
+        size4Btn.classList.add('active');
+        size5Btn.classList.remove('active');
+        currentPuzzles = verifiedPuzzles4x4;
+      } else {
+        size5Btn.classList.add('active');
+        size4Btn.classList.remove('active');
+        currentPuzzles = verifiedPuzzles5x5;
+      }
+      
+      // Update display
+      boardSizeDisplay.textContent = SIZE;
+      maxHeightDisplay.textContent = SIZE;
+      
+      // Reset puzzle index
+      puzzleIndex = 0;
+      
+      // Create shuffled indices
+      shuffleArray();
+      
+      // Update puzzle counter
+      updatePuzzleCounter();
+      
+      // Create number input buttons
+      createNumberButtons();
+      
+      // Initialize first puzzle
+      initializeGame();
+    }
+    
+    // Update puzzle counter
+    function updatePuzzleCounter() {
+      puzzleIndexEl.textContent = puzzleIndex + 1;
+      puzzleCountEl.textContent = currentPuzzles.length;
     }
     
     // Create number input buttons
@@ -484,7 +638,7 @@
     
     // Shuffle array using Fisher-Yates algorithm
     function shuffleArray() {
-      shuffledIndices = Array.from({ length: verifiedPuzzles.length }, (_, i) => i);
+      shuffledIndices = Array.from({ length: currentPuzzles.length }, (_, i) => i);
       
       for (let i = shuffledIndices.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -499,7 +653,7 @@
       
       // Get the current puzzle based on shuffled index
       const currentIndex = shuffledIndices[puzzleIndex % shuffledIndices.length];
-      const puzzle = verifiedPuzzles[currentIndex];
+      const puzzle = currentPuzzles[currentIndex];
       
       // Set clues
       topClues = puzzle.topClues;
@@ -662,7 +816,7 @@
     
     // Next puzzle
     function handleNextPuzzle() {
-      puzzleIndex = (puzzleIndex + 1) % verifiedPuzzles.length;
+      puzzleIndex = (puzzleIndex + 1) % currentPuzzles.length;
       puzzleIndexEl.textContent = puzzleIndex + 1;
       initializeGame();
     }
@@ -670,7 +824,7 @@
     // Show solution
     function handleSolvePuzzle() {
       const currentIndex = shuffledIndices[puzzleIndex % shuffledIndices.length];
-      const solution = verifiedPuzzles[currentIndex].grid;
+      const solution = currentPuzzles[currentIndex].grid;
       
       // Deep copy the solution
       board = JSON.parse(JSON.stringify(solution));
@@ -679,10 +833,9 @@
       validateBoard();
     }
     
-    // Get a hint
     function handleHint() {
       const currentIndex = shuffledIndices[puzzleIndex % shuffledIndices.length];
-      const solution = verifiedPuzzles[currentIndex].grid;
+      const solution = currentPuzzles[currentIndex].grid;
       
       let hintGiven = false;
       
@@ -691,163 +844,177 @@
         for (let j = 0; j < SIZE && !hintGiven; j++) {
           if (board[i][j] === 0 || board[i][j] !== solution[i][j]) {
             board[i][j] = solution[i][j];
+            selectedCell = { row: i, col: j };
             hintGiven = true;
           }
         }
       }
       
       if (hintGiven) {
+        showMessage("Hint: " + solution[selectedCell.row][selectedCell.col] + " is correct at this position.", "info");
         renderBoard();
         validateBoard();
-        showMessage('Here\'s a hint!', 'info');
       } else {
-        showMessage('No more hints needed!', 'info');
+        showMessage("Your solution is already correct!", "success");
       }
     }
     
     // Validate the board
     function validateBoard() {
-      // Check if the board is filled
-      const isFilled = board.every(row => row.every(cell => cell !== 0));
+      // Check if board is complete
+      const isComplete = board.every(row => row.every(cell => cell !== 0));
       
-      if (!isFilled) {
+      if (!isComplete) {
         hideMessage();
         return;
       }
       
-      // Check rows and columns for uniqueness
-      let valid = true;
+      // Validate rows and columns for duplicate numbers
+      let isValidBoard = true;
       
       // Check rows
       for (let i = 0; i < SIZE; i++) {
-        const row = board[i];
-        const rowSet = new Set(row);
-        if (rowSet.size !== SIZE || rowSet.has(0)) {
-          valid = false;
+        const rowSet = new Set();
+        for (let j = 0; j < SIZE; j++) {
+          rowSet.add(board[i][j]);
+        }
+        if (rowSet.size !== SIZE) {
+          isValidBoard = false;
           break;
         }
       }
       
       // Check columns
-      for (let j = 0; j < SIZE; j++) {
-        const col = board.map(row => row[j]);
-        const colSet = new Set(col);
-        if (colSet.size !== SIZE || colSet.has(0)) {
-          valid = false;
-          break;
+      if (isValidBoard) {
+        for (let j = 0; j < SIZE; j++) {
+          const colSet = new Set();
+          for (let i = 0; i < SIZE; i++) {
+            colSet.add(board[i][j]);
+          }
+          if (colSet.size !== SIZE) {
+            isValidBoard = false;
+            break;
+          }
         }
       }
       
-      // If not valid based on uniqueness, no need to check visibility
-      if (!valid) {
-        isValid = false;
-        isSolved = false;
-        showMessage('Each row and column must contain unique numbers from 1 to ' + SIZE, 'error');
-        return;
-      }
-      
-      // Check visibility from each direction
-      const topVisible = calculateVisibleBuildings('top');
-      const rightVisible = calculateVisibleBuildings('right');
-      const bottomVisible = calculateVisibleBuildings('bottom');
-      const leftVisible = calculateVisibleBuildings('left');
-      
-      // Compare with clues
-      for (let i = 0; i < SIZE; i++) {
-        if (
-          (topClues[i] > 0 && topVisible[i] !== topClues[i]) ||
-          (rightClues[i] > 0 && rightVisible[i] !== rightClues[i]) ||
-          (bottomClues[i] > 0 && bottomVisible[i] !== bottomClues[i]) ||
-          (leftClues[i] > 0 && leftVisible[i] !== leftClues[i])
-        ) {
-          valid = false;
-          break;
+      // Check clues
+      if (isValidBoard) {
+        // Check top clues
+        for (let col = 0; col < SIZE; col++) {
+          if (topClues[col] > 0 && countVisibleFromTop(col) !== topClues[col]) {
+            isValidBoard = false;
+            break;
+          }
         }
       }
       
-      isValid = valid;
-      isSolved = valid;
+      if (isValidBoard) {
+        // Check right clues
+        for (let row = 0; row < SIZE; row++) {
+          if (rightClues[row] > 0 && countVisibleFromRight(row) !== rightClues[row]) {
+            isValidBoard = false;
+            break;
+          }
+        }
+      }
       
-      if (valid) {
-        showMessage('Puzzle solved correctly!', 'success');
-      } else if (isFilled) {
-        showMessage('Visibility clues don\'t match. Try again!', 'error');
+      if (isValidBoard) {
+        // Check bottom clues
+        for (let col = 0; col < SIZE; col++) {
+          if (bottomClues[col] > 0 && countVisibleFromBottom(col) !== bottomClues[col]) {
+            isValidBoard = false;
+            break;
+          }
+        }
+      }
+      
+      if (isValidBoard) {
+        // Check left clues
+        for (let row = 0; row < SIZE; row++) {
+          if (leftClues[row] > 0 && countVisibleFromLeft(row) !== leftClues[row]) {
+            isValidBoard = false;
+            break;
+          }
+        }
+      }
+      
+      // Update state
+      isValid = isValidBoard;
+      isSolved = isValidBoard;
+      
+      // Show message
+      if (isValid) {
+        showMessage("Correct! Well done!", "success");
+      } else {
+        showMessage("Solution is incorrect. Try again!", "error");
       }
     }
     
-    // Calculate visible buildings from a direction
-    function calculateVisibleBuildings(direction) {
-      const visible = [];
+    // Count visible buildings from top
+    function countVisibleFromTop(col) {
+      let visible = 0;
+      let maxHeight = 0;
       
-      switch (direction) {
-        case 'top':
-          for (let col = 0; col < SIZE; col++) {
-            let maxHeight = 0;
-            let count = 0;
-            for (let row = 0; row < SIZE; row++) {
-              const height = board[row][col];
-              if (height > maxHeight) {
-                maxHeight = height;
-                count++;
-              }
-            }
-            visible.push(count);
-          }
-          break;
-          
-        case 'right':
-          for (let row = 0; row < SIZE; row++) {
-            let maxHeight = 0;
-            let count = 0;
-            for (let col = SIZE - 1; col >= 0; col--) {
-              const height = board[row][col];
-              if (height > maxHeight) {
-                maxHeight = height;
-                count++;
-              }
-            }
-            visible.push(count);
-          }
-          break;
-          
-        case 'bottom':
-          for (let col = 0; col < SIZE; col++) {
-            let maxHeight = 0;
-            let count = 0;
-            for (let row = SIZE - 1; row >= 0; row--) {
-              const height = board[row][col];
-              if (height > maxHeight) {
-                maxHeight = height;
-                count++;
-              }
-            }
-            visible.push(count);
-          }
-          break;
-          
-        case 'left':
-          for (let row = 0; row < SIZE; row++) {
-            let maxHeight = 0;
-            let count = 0;
-            for (let col = 0; col < SIZE; col++) {
-              const height = board[row][col];
-              if (height > maxHeight) {
-                maxHeight = height;
-                count++;
-              }
-            }
-            visible.push(count);
-          }
-          break;
+      for (let row = 0; row < SIZE; row++) {
+        if (board[row][col] > maxHeight) {
+          visible++;
+          maxHeight = board[row][col];
+        }
       }
       
       return visible;
     }
     
-    // Show message with status
+    // Count visible buildings from right
+    function countVisibleFromRight(row) {
+      let visible = 0;
+      let maxHeight = 0;
+      
+      for (let col = SIZE - 1; col >= 0; col--) {
+        if (board[row][col] > maxHeight) {
+          visible++;
+          maxHeight = board[row][col];
+        }
+      }
+      
+      return visible;
+    }
+    
+    // Count visible buildings from bottom
+    function countVisibleFromBottom(col) {
+      let visible = 0;
+      let maxHeight = 0;
+      
+      for (let row = SIZE - 1; row >= 0; row--) {
+        if (board[row][col] > maxHeight) {
+          visible++;
+          maxHeight = board[row][col];
+        }
+      }
+      
+      return visible;
+    }
+    
+    // Count visible buildings from left
+    function countVisibleFromLeft(row) {
+      let visible = 0;
+      let maxHeight = 0;
+      
+      for (let col = 0; col < SIZE; col++) {
+        if (board[row][col] > maxHeight) {
+          visible++;
+          maxHeight = board[row][col];
+        }
+      }
+      
+      return visible;
+    }
+    
+    // Show message
     function showMessage(text, type) {
       messageEl.textContent = text;
-      messageEl.className = 'message ' + type;
+      messageEl.className = `message ${type}`;
       messageEl.style.display = 'block';
     }
     
@@ -856,8 +1023,8 @@
       messageEl.style.display = 'none';
     }
     
-    // Initialize the game when the page loads
-    window.addEventListener('load', init);
+    // Initialize the game
+    init();
   </script>
 </body>
 </html>
