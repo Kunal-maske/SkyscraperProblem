@@ -216,6 +216,24 @@
       background-color: #3b82f6;
       color: white;
     }
+    
+    /* Make cells smaller for 6x6 */
+    @media (max-width: 600px) {
+      .cell, .clue-cell, .empty-cell, .number-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+    }
+    
+    /* Make cells even smaller for smaller screens */
+    @media (max-width: 500px) {
+      .cell, .clue-cell, .empty-cell, .number-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -225,6 +243,7 @@
     <div class="board-size-control">
       <button id="size-4-btn" class="size-btn active">4x4</button>
       <button id="size-5-btn" class="size-btn">5x5</button>
+      <button id="size-6-btn" class="size-btn">6x6</button>
     </div>
     
     <div class="controls">
@@ -243,7 +262,7 @@
     <div class="game-controls">
       <button id="clear-btn" class="btn btn-clear">Clear Board</button>
       <button id="check-btn" class="btn btn-check">Check Solution</button>
-      <button id="hint-btn" class="btn btn-hint">Get Hint</button>
+      <button id="hint-btn" class="btn btn-hint">Hint</button>
       <button id="solve-btn" class="btn btn-solve">Show Solution</button>
     </div>
     
@@ -263,7 +282,7 @@
 
   <script>
     // Constants
-    let SIZE = 4; // Default size, can be changed to 5
+    let SIZE = 4; // Default size, can be changed to 5 or 6
     
     // Game state
     let board = [];
@@ -539,6 +558,178 @@
       }
     ];
     
+    // Predefined puzzles for 6x6
+    const verifiedPuzzles6x6 = [
+      { 
+        grid: [
+          [6,5,4,1,3,2],
+          [5,3,1,6,2,4],
+          [1,4,2,5,6,3],
+          [2,6,5,3,4,1],
+          [3,2,6,4,1,5],
+          [4,1,3,2,5,6]
+        ], 
+        topClues: [1,2,2,3,4,3], 
+        rightClues: [2,3,2,2,2,3], 
+        bottomClues: [3,3,2,1,3,2], 
+        leftClues: [4,3,1,2,3,2] 
+      },
+      { 
+        grid: [
+          [5,1,3,6,4,2],
+          [3,5,1,4,2,6],
+          [4,2,5,1,6,3],
+          [6,3,4,2,1,5],
+          [1,6,2,5,3,4],
+          [2,4,6,3,5,1]
+        ], 
+        topClues: [2,3,2,1,4,2], 
+        rightClues: [2,3,3,2,4,1], 
+        bottomClues: [2,6,3,2,4,1], 
+        leftClues: [2,4,1,2,2,4] 
+      },
+      { 
+        grid: [
+          [2,4,5,3,6,1],
+          [4,6,1,2,5,3],
+          [6,1,3,5,2,4],
+          [1,2,6,4,3,5],
+          [5,3,2,6,1,4],
+          [3,5,4,1,4,2]
+        ], 
+        topClues: [3,2,2,3,1,4], 
+        rightClues: [2,3,3,2,2,1], 
+        bottomClues: [3,2,2,2,5,1], 
+        leftClues: [4,2,1,2,2,3] 
+      },
+      { 
+        grid: [
+          [5,2,6,1,4,3],
+          [1,6,3,5,2,4],
+          [4,3,1,6,5,2],
+          [6,5,4,3,1,2],
+          [2,1,5,4,3,6],
+          [3,4,2,2,6,1]
+        ], 
+        topClues: [2,2,3,1,4,3], 
+        rightClues: [2,4,3,5,2,1], 
+        bottomClues: [2,3,4,2,2,1], 
+        leftClues: [2,2,2,1,4,4] 
+      },
+      { 
+        grid: [
+          [3,4,5,1,2,6],
+          [4,3,2,5,6,1],
+          [6,2,4,3,1,5],
+          [5,1,6,4,3,2],
+          [1,6,3,2,5,4],
+          [2,5,1,6,4,3]
+        ], 
+        topClues: [2,2,2,5,1,3], 
+        rightClues: [4,2,1,2,3,3], 
+        bottomClues: [4,2,2,1,5,2], 
+        leftClues: [6,1,1,2,3,6] 
+      },
+      { 
+        grid: [
+          [1,6,4,2,3,5],
+          [2,3,6,4,5,1],
+          [4,5,2,6,1,3],
+          [6,1,5,3,2,4],
+          [3,4,1,5,6,2],
+          [5,2,3,1,4,6]
+        ], 
+        topClues: [4,1,2,2,5,3], 
+        rightClues: [3,2,3,4,1,2], 
+        bottomClues: [2,4,3,4,1,2], 
+        leftClues: [5,1,2,3,4,3] 
+      },
+      { 
+        grid: [
+          [5,6,2,1,4,3],
+          [3,2,5,4,6,1],
+          [1,3,6,5,2,4],
+          [6,5,4,3,1,2],
+          [4,1,3,6,5,2],
+          [2,4,1,2,3,6]
+        ], 
+        topClues: [2,2,1,3,4,2], 
+        rightClues: [2,1,3,6,2,2], 
+        bottomClues: [3,3,2,2,1,3], 
+        leftClues: [2,3,2,1,2,4] 
+      },
+      { 
+        grid: [
+          [2,4,1,6,5,3],
+          [5,1,6,3,2,4],
+          [4,2,3,5,1,6],
+          [1,3,5,2,6,2],
+          [3,6,2,4,4,1],
+          [6,5,4,1,3,5]
+        ], 
+        topClues: [3,2,2,2,1,3], 
+        rightClues: [2,3,2,1,3,3], 
+        bottomClues: [1,2,4,4,3,2], 
+        leftClues: [4,2,2,4,2,1] 
+      },
+      { 
+        grid: [
+          [2,6,4,1,5,3],
+          [1,2,5,6,3,4],
+          [5,4,3,2,1,6],
+          [6,3,1,4,2,5],
+          [4,1,6,5,4,2],
+          [3,5,2,3,6,1]
+        ], 
+        topClues: [4,1,2,3,3,2], 
+        rightClues: [2,1,2,2,3,3], 
+        bottomClues: [2,4,2,1,3,3], 
+        leftClues: [2,3,2,3,1,3] 
+      },
+      { 
+        grid: [
+          [1,4,2,6,5,3],
+          [2,5,4,3,6,1],
+          [4,2,5,1,3,6],
+          [6,3,1,5,2,4],
+          [5,6,3,4,1,2],
+          [3,1,6,2,4,5]
+        ], 
+        topClues: [3,3,2,4,1,2], 
+        rightClues: [2,1,3,3,3,2], 
+        bottomClues: [3,2,2,1,4,2], 
+        leftClues: [3,3,2,1,2,4] 
+      },
+      { 
+        grid: [
+          [6,3,1,4,5,2],
+          [4,2,6,5,3,1],
+          [1,4,5,6,2,3],
+          [2,6,3,1,4,5],
+          [3,5,2,2,1,6],
+          [5,1,4,3,6,4]
+        ], 
+        topClues: [1,4,2,3,3,2], 
+        rightClues: [2,4,2,1,2,4], 
+        bottomClues: [2,1,3,3,2,3], 
+        leftClues: [1,2,4,5,3,2] 
+      },
+      { 
+        grid: [
+          [2,6,4,5,1,3],
+          [4,1,5,2,6,3],
+          [5,3,2,1,4,6],
+          [3,5,6,4,2,1],
+          [1,2,3,6,5,4],
+          [6,4,1,3,3,2]
+        ], 
+        topClues: [4,1,2,3,2,2], 
+        rightClues: [3,1,2,3,2,3], 
+        bottomClues: [1,3,2,2,4,3], 
+        leftClues: [2,3,2,3,4,1] 
+      }
+    ];
+    
     // Current puzzles based on board size
     let currentPuzzles = verifiedPuzzles4x4;
     
@@ -550,162 +741,74 @@
     const numberInputEl = document.getElementById('number-input');
     const size4Btn = document.getElementById('size-4-btn');
     const size5Btn = document.getElementById('size-5-btn');
+    const size6Btn = document.getElementById('size-6-btn');
     const boardSizeDisplay = document.getElementById('board-size-display');
     const maxHeightDisplay = document.getElementById('max-height-display');
     
+    // Event listeners
+    document.getElementById('next-puzzle-btn').addEventListener('click', nextPuzzle);
+    document.getElementById('reset-btn').addEventListener('click', resetPuzzle);
+    document.getElementById('clear-btn').addEventListener('click', clearBoard);
+    document.getElementById('check-btn').addEventListener('click', checkSolution);
+    document.getElementById('hint-btn').addEventListener('click', getHint);
+    document.getElementById('solve-btn').addEventListener('click', showSolution);
+    size4Btn.addEventListener('click', () => changeBoardSize(4));
+    size5Btn.addEventListener('click', () => changeBoardSize(5));
+    size6Btn.addEventListener('click', () => changeBoardSize(6));
+    
     // Initialize the game
     function init() {
-      // Set up board size buttons
-      size4Btn.addEventListener('click', () => changeBoardSize(4));
-      size5Btn.addEventListener('click', () => changeBoardSize(5));
-      
-      // Create shuffled indices
-      shuffleArray();
-      
-      // Update puzzle counter
-      updatePuzzleCounter();
-      
-      // Create number input buttons
-      createNumberButtons();
-      
-      // Initialize first puzzle
-      initializeGame();
-      
-      // Add event listeners
-      document.getElementById('next-puzzle-btn').addEventListener('click', handleNextPuzzle);
-      document.getElementById('reset-btn').addEventListener('click', initializeGame);
-      document.getElementById('clear-btn').addEventListener('click', handleClear);
-      document.getElementById('check-btn').addEventListener('click', validateBoard);
-      document.getElementById('hint-btn').addEventListener('click', handleHint);
-      document.getElementById('solve-btn').addEventListener('click', handleSolvePuzzle);
+      shufflePuzzleIndices();
+      createBoard();
+      updateNumberInput();
+      loadPuzzle();
     }
     
-    // Change board size
-    function changeBoardSize(newSize) {
-      if (SIZE === newSize) return;
-      
-      SIZE = newSize;
-      
-      // Update active button
-      if (SIZE === 4) {
-        size4Btn.classList.add('active');
-        size5Btn.classList.remove('active');
-        currentPuzzles = verifiedPuzzles4x4;
-      } else {
-        size5Btn.classList.add('active');
-        size4Btn.classList.remove('active');
-        currentPuzzles = verifiedPuzzles5x5;
+    // Shuffle puzzle indices to get random order
+    function shufflePuzzleIndices() {
+      shuffledIndices = [];
+      for (let i = 0; i < currentPuzzles.length; i++) {
+        shuffledIndices.push(i);
       }
       
-      // Update display
-      boardSizeDisplay.textContent = SIZE;
-      maxHeightDisplay.textContent = SIZE;
-      
-      // Reset puzzle index
-      puzzleIndex = 0;
-      
-      // Create shuffled indices
-      shuffleArray();
-      
-      // Update puzzle counter
-      updatePuzzleCounter();
-      
-      // Create number input buttons
-      createNumberButtons();
-      
-      // Initialize first puzzle
-      initializeGame();
-    }
-    
-    // Update puzzle counter
-    function updatePuzzleCounter() {
-      puzzleIndexEl.textContent = puzzleIndex + 1;
-      puzzleCountEl.textContent = currentPuzzles.length;
-    }
-    
-    // Create number input buttons
-    function createNumberButtons() {
-      numberInputEl.innerHTML = '';
-      
-      for (let i = 1; i <= SIZE; i++) {
-        const button = document.createElement('button');
-        button.className = 'number-btn';
-        button.textContent = i;
-        button.addEventListener('click', () => handleNumberInput(i));
-        numberInputEl.appendChild(button);
-      }
-    }
-    
-    // Shuffle array using Fisher-Yates algorithm
-    function shuffleArray() {
-      shuffledIndices = Array.from({ length: currentPuzzles.length }, (_, i) => i);
-      
+      // Simple Fisher-Yates shuffle
       for (let i = shuffledIndices.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [shuffledIndices[i], shuffledIndices[j]] = [shuffledIndices[j], shuffledIndices[i]];
       }
+      
+      puzzleCountEl.textContent = currentPuzzles.length;
     }
     
-    // Initialize game with current puzzle
-    function initializeGame() {
-      // Create empty board
-      board = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
-      
-      // Get the current puzzle based on shuffled index
-      const currentIndex = shuffledIndices[puzzleIndex % shuffledIndices.length];
-      const puzzle = currentPuzzles[currentIndex];
-      
-      // Set clues
-      topClues = puzzle.topClues;
-      rightClues = puzzle.rightClues;
-      bottomClues = puzzle.bottomClues;
-      leftClues = puzzle.leftClues;
-      
-      // Reset state
-      selectedCell = null;
-      isValid = null;
-      isSolved = false;
-      
-      // Render board
-      renderBoard();
-      
-      // Hide message
-      hideMessage();
-    }
-    
-    // Render the full board with clues
-    function renderBoard() {
+    // Create empty board
+    function createBoard() {
       boardContainer.innerHTML = '';
       
       // Top clues row
-      const topRow = document.createElement('div');
-      topRow.className = 'board-row';
+      const topClueRow = document.createElement('div');
+      topClueRow.className = 'board-row';
       
-      // Empty top-left corner
+      // Empty corner cell
       const emptyCorner1 = document.createElement('div');
       emptyCorner1.className = 'empty-cell';
-      topRow.appendChild(emptyCorner1);
+      topClueRow.appendChild(emptyCorner1);
       
       // Top clues
       for (let i = 0; i < SIZE; i++) {
         const clueCell = document.createElement('div');
         clueCell.className = 'clue-cell';
-        
-        if (topClues[i] > 0) {
-          clueCell.textContent = topClues[i] + ' ▼';
-        }
-        
-        topRow.appendChild(clueCell);
+        clueCell.id = `top-clue-${i}`;
+        topClueRow.appendChild(clueCell);
       }
       
-      // Empty top-right corner
+      // Empty corner cell
       const emptyCorner2 = document.createElement('div');
       emptyCorner2.className = 'empty-cell';
-      topRow.appendChild(emptyCorner2);
+      topClueRow.appendChild(emptyCorner2);
       
-      boardContainer.appendChild(topRow);
+      boardContainer.appendChild(topClueRow);
       
-      // Main board rows with left and right clues
+      // Main board rows
       for (let row = 0; row < SIZE; row++) {
         const boardRow = document.createElement('div');
         boardRow.className = 'board-row';
@@ -713,307 +816,448 @@
         // Left clue
         const leftClue = document.createElement('div');
         leftClue.className = 'clue-cell';
-        
-        if (leftClues[row] > 0) {
-          leftClue.textContent = leftClues[row] + ' ▶';
-        }
-        
+        leftClue.id = `left-clue-${row}`;
         boardRow.appendChild(leftClue);
         
         // Board cells
         for (let col = 0; col < SIZE; col++) {
           const cell = document.createElement('div');
           cell.className = 'cell';
-          cell.dataset.row = row;
-          cell.dataset.col = col;
-          
-          if (board[row][col] !== 0) {
-            cell.textContent = board[row][col];
-          }
-          
-          if (selectedCell && selectedCell.row === row && selectedCell.col === col) {
-            cell.classList.add('selected');
-          }
-          
-          cell.addEventListener('click', () => handleCellClick(row, col));
+          cell.id = `cell-${row}-${col}`;
+          cell.addEventListener('click', () => selectCell(row, col));
           boardRow.appendChild(cell);
         }
         
         // Right clue
         const rightClue = document.createElement('div');
         rightClue.className = 'clue-cell';
-        
-        if (rightClues[row] > 0) {
-          rightClue.textContent = rightClues[row] + ' ◀';
-        }
-        
+        rightClue.id = `right-clue-${row}`;
         boardRow.appendChild(rightClue);
         
         boardContainer.appendChild(boardRow);
       }
       
       // Bottom clues row
-      const bottomRow = document.createElement('div');
-      bottomRow.className = 'board-row';
+      const bottomClueRow = document.createElement('div');
+      bottomClueRow.className = 'board-row';
       
-      // Empty bottom-left corner
+      // Empty corner cell
       const emptyCorner3 = document.createElement('div');
       emptyCorner3.className = 'empty-cell';
-      bottomRow.appendChild(emptyCorner3);
+      bottomClueRow.appendChild(emptyCorner3);
       
       // Bottom clues
       for (let i = 0; i < SIZE; i++) {
         const clueCell = document.createElement('div');
         clueCell.className = 'clue-cell';
-        
-        if (bottomClues[i] > 0) {
-          clueCell.textContent = bottomClues[i] + ' ▲';
-        }
-        
-        bottomRow.appendChild(clueCell);
+        clueCell.id = `bottom-clue-${i}`;
+        bottomClueRow.appendChild(clueCell);
       }
       
-      // Empty bottom-right corner
+      // Empty corner cell
       const emptyCorner4 = document.createElement('div');
       emptyCorner4.className = 'empty-cell';
-      bottomRow.appendChild(emptyCorner4);
+      bottomClueRow.appendChild(emptyCorner4);
       
-      boardContainer.appendChild(bottomRow);
+      boardContainer.appendChild(bottomClueRow);
+      
+      // Initialize board array
+      board = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
     }
     
-    // Handle cell click
-    function handleCellClick(row, col) {
-      selectedCell = { row, col };
-      renderBoard();
-    }
-    
-    // Handle number input
-    function handleNumberInput(num) {
-      if (!selectedCell) return;
+    // Update number input buttons
+    function updateNumberInput() {
+      numberInputEl.innerHTML = '';
       
-      const { row, col } = selectedCell;
-      
-      // If same number is clicked, clear the cell
-      if (board[row][col] === num) {
-        board[row][col] = 0;
-      } else {
-        board[row][col] = num;
+      for (let i = 1; i <= SIZE; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'number-btn';
+        btn.textContent = i;
+        btn.addEventListener('click', () => placeNumber(i));
+        numberInputEl.appendChild(btn);
       }
       
-      renderBoard();
-      validateBoard();
+      // Add erase button
+      const eraseBtn = document.createElement('button');
+      eraseBtn.className = 'number-btn';
+      eraseBtn.textContent = 'X';
+      eraseBtn.addEventListener('click', () => placeNumber(0));
+      numberInputEl.appendChild(eraseBtn);
     }
     
-    // Clear the board
-    function handleClear() {
-      board = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
+    // Load puzzle
+    function loadPuzzle() {
+      const currentPuzzle = currentPuzzles[shuffledIndices[puzzleIndex]];
+      
+      // Load clues
+      topClues = currentPuzzle.topClues;
+      rightClues = currentPuzzle.rightClues;
+      bottomClues = currentPuzzle.bottomClues;
+      leftClues = currentPuzzle.leftClues;
+      
+      // Display clues
+      for (let i = 0; i < SIZE; i++) {
+        document.getElementById(`top-clue-${i}`).textContent = topClues[i] || '';
+        document.getElementById(`right-clue-${i}`).textContent = rightClues[i] || '';
+        document.getElementById(`bottom-clue-${i}`).textContent = bottomClues[i] || '';
+        document.getElementById(`left-clue-${i}`).textContent = leftClues[i] || '';
+      }
+      
+      // Reset board
+      clearBoard();
+      
+      // Update puzzle index display
+      puzzleIndexEl.textContent = puzzleIndex + 1;
+      
+      // Update message
+      hideMessage();
       isValid = null;
       isSolved = false;
+    }
+    
+    // Select a cell
+    function selectCell(row, col) {
+      // Deselect previously selected cell
+      if (selectedCell !== null) {
+        document.getElementById(`cell-${selectedCell.row}-${selectedCell.col}`).classList.remove('selected');
+      }
       
-      hideMessage();
-      renderBoard();
+      // Select new cell
+      selectedCell = { row, col };
+      document.getElementById(`cell-${row}-${col}`).classList.add('selected');
+    }
+    
+    // Place number in selected cell
+    function placeNumber(num) {
+      if (selectedCell !== null) {
+        const { row, col } = selectedCell;
+        board[row][col] = num;
+        
+        const cell = document.getElementById(`cell-${row}-${col}`);
+        if (num === 0) {
+          cell.textContent = '';
+        } else {
+          cell.textContent = num;
+        }
+        
+        // Clear any existing validation message
+        hideMessage();
+        isValid = null;
+        
+        // Check if board is complete and valid
+        const isComplete = checkBoardComplete();
+        if (isComplete) {
+          const isValidSolution = validateSolution();
+          if (isValidSolution) {
+            showMessage('Congratulations! You solved the puzzle correctly!', 'success');
+            isSolved = true;
+          }
+        }
+      }
+    }
+    
+    // Check if the board is complete (all cells filled)
+    function checkBoardComplete() {
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) {
+          if (board[row][col] === 0) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+    
+    // Validate the solution
+    function validateSolution() {
+      // Check rows and columns for uniqueness
+      for (let i = 0; i < SIZE; i++) {
+        const rowNumbers = new Set();
+        const colNumbers = new Set();
+        
+        for (let j = 0; j < SIZE; j++) {
+          // Check row
+          if (rowNumbers.has(board[i][j])) {
+            return false;
+          }
+          if (board[i][j] !== 0) {
+            rowNumbers.add(board[i][j]);
+          }
+          
+          // Check column
+          if (colNumbers.has(board[j][i])) {
+            return false;
+          }
+          if (board[j][i] !== 0) {
+            colNumbers.add(board[j][i]);
+          }
+        }
+        
+        // Check if all numbers 1 to SIZE are present
+        if (rowNumbers.size !== SIZE || colNumbers.size !== SIZE) {
+          return false;
+        }
+      }
+      
+      // Check visibility constraints
+      if (!checkVisibilityConstraints()) {
+        return false;
+      }
+      
+      return true;
+    }
+    
+    // Check visibility constraints
+    function checkVisibilityConstraints() {
+      // Check top constraints
+      for (let col = 0; col < SIZE; col++) {
+        const expectedVisibility = topClues[col];
+        if (expectedVisibility !== 0) {
+          const actualVisibility = calculateVisibilityFromTop(col);
+          if (actualVisibility !== expectedVisibility) {
+            return false;
+          }
+        }
+      }
+      
+      // Check right constraints
+      for (let row = 0; row < SIZE; row++) {
+        const expectedVisibility = rightClues[row];
+        if (expectedVisibility !== 0) {
+          const actualVisibility = calculateVisibilityFromRight(row);
+          if (actualVisibility !== expectedVisibility) {
+            return false;
+          }
+        }
+      }
+      
+      // Check bottom constraints
+      for (let col = 0; col < SIZE; col++) {
+        const expectedVisibility = bottomClues[col];
+        if (expectedVisibility !== 0) {
+          const actualVisibility = calculateVisibilityFromBottom(col);
+          if (actualVisibility !== expectedVisibility) {
+            return false;
+          }
+        }
+      }
+      
+      // Check left constraints
+      for (let row = 0; row < SIZE; row++) {
+        const expectedVisibility = leftClues[row];
+        if (expectedVisibility !== 0) {
+          const actualVisibility = calculateVisibilityFromLeft(row);
+          if (actualVisibility !== expectedVisibility) {
+            return false;
+          }
+        }
+      }
+      
+      return true;
+    }
+    
+    // Calculate visibility from top
+    function calculateVisibilityFromTop(col) {
+      let visibility = 1;
+      let maxHeight = board[0][col];
+      
+      for (let row = 1; row < SIZE; row++) {
+        if (board[row][col] > maxHeight) {
+          visibility++;
+          maxHeight = board[row][col];
+        }
+      }
+      
+      return visibility;
+    }
+    
+    // Calculate visibility from right
+    function calculateVisibilityFromRight(row) {
+      let visibility = 1;
+      let maxHeight = board[row][SIZE - 1];
+      
+      for (let col = SIZE - 2; col >= 0; col--) {
+        if (board[row][col] > maxHeight) {
+          visibility++;
+          maxHeight = board[row][col];
+        }
+      }
+      
+      return visibility;
+    }
+    
+    // Calculate visibility from bottom
+    function calculateVisibilityFromBottom(col) {
+      let visibility = 1;
+      let maxHeight = board[SIZE - 1][col];
+      
+      for (let row = SIZE - 2; row >= 0; row--) {
+        if (board[row][col] > maxHeight) {
+          visibility++;
+          maxHeight = board[row][col];
+        }
+      }
+      
+      return visibility;
+    }
+    
+    // Calculate visibility from left
+    function calculateVisibilityFromLeft(row) {
+      let visibility = 1;
+      let maxHeight = board[row][0];
+      
+      for (let col = 1; col < SIZE; col++) {
+        if (board[row][col] > maxHeight) {
+          visibility++;
+          maxHeight = board[row][col];
+        }
+      }
+      
+      return visibility;
     }
     
     // Next puzzle
-    function handleNextPuzzle() {
+    function nextPuzzle() {
       puzzleIndex = (puzzleIndex + 1) % currentPuzzles.length;
-      puzzleIndexEl.textContent = puzzleIndex + 1;
-      initializeGame();
+      loadPuzzle();
     }
     
-    // Show solution
-    function handleSolvePuzzle() {
-      const currentIndex = shuffledIndices[puzzleIndex % shuffledIndices.length];
-      const solution = currentPuzzles[currentIndex].grid;
-      
-      // Deep copy the solution
-      board = JSON.parse(JSON.stringify(solution));
-      
-      renderBoard();
-      validateBoard();
+    // Reset puzzle
+    function resetPuzzle() {
+      loadPuzzle();
     }
     
-    function handleHint() {
-      const currentIndex = shuffledIndices[puzzleIndex % shuffledIndices.length];
-      const solution = currentPuzzles[currentIndex].grid;
+    // Clear board
+    function clearBoard() {
+      board = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
       
-      let hintGiven = false;
-      
-      // Find an empty cell or incorrect cell and provide a hint
-      for (let i = 0; i < SIZE && !hintGiven; i++) {
-        for (let j = 0; j < SIZE && !hintGiven; j++) {
-          if (board[i][j] === 0 || board[i][j] !== solution[i][j]) {
-            board[i][j] = solution[i][j];
-            selectedCell = { row: i, col: j };
-            hintGiven = true;
-          }
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) {
+          document.getElementById(`cell-${row}-${col}`).textContent = '';
         }
       }
       
-      if (hintGiven) {
-        showMessage("Hint: " + solution[selectedCell.row][selectedCell.col] + " is correct at this position.", "info");
-        renderBoard();
-        validateBoard();
-      } else {
-        showMessage("Your solution is already correct!", "success");
+      // Clear selection
+      if (selectedCell !== null) {
+        document.getElementById(`cell-${selectedCell.row}-${selectedCell.col}`).classList.remove('selected');
+        selectedCell = null;
       }
+      
+      // Clear message
+      hideMessage();
+      isValid = null;
+      isSolved = false;
     }
     
-    // Validate the board
-    function validateBoard() {
-      // Check if board is complete
-      const isComplete = board.every(row => row.every(cell => cell !== 0));
-      
-      if (!isComplete) {
-        hideMessage();
+    // Check solution
+    function checkSolution() {
+      const complete = checkBoardComplete();
+      if (!complete) {
+        showMessage('Fill in all squares before checking the solution.', 'error');
         return;
       }
       
-      // Validate rows and columns for duplicate numbers
-      let isValidBoard = true;
-      
-      // Check rows
-      for (let i = 0; i < SIZE; i++) {
-        const rowSet = new Set();
-        for (let j = 0; j < SIZE; j++) {
-          rowSet.add(board[i][j]);
-        }
-        if (rowSet.size !== SIZE) {
-          isValidBoard = false;
-          break;
-        }
-      }
-      
-      // Check columns
-      if (isValidBoard) {
-        for (let j = 0; j < SIZE; j++) {
-          const colSet = new Set();
-          for (let i = 0; i < SIZE; i++) {
-            colSet.add(board[i][j]);
-          }
-          if (colSet.size !== SIZE) {
-            isValidBoard = false;
-            break;
-          }
-        }
-      }
-      
-      // Check clues
-      if (isValidBoard) {
-        // Check top clues
-        for (let col = 0; col < SIZE; col++) {
-          if (topClues[col] > 0 && countVisibleFromTop(col) !== topClues[col]) {
-            isValidBoard = false;
-            break;
-          }
-        }
-      }
-      
-      if (isValidBoard) {
-        // Check right clues
-        for (let row = 0; row < SIZE; row++) {
-          if (rightClues[row] > 0 && countVisibleFromRight(row) !== rightClues[row]) {
-            isValidBoard = false;
-            break;
-          }
-        }
-      }
-      
-      if (isValidBoard) {
-        // Check bottom clues
-        for (let col = 0; col < SIZE; col++) {
-          if (bottomClues[col] > 0 && countVisibleFromBottom(col) !== bottomClues[col]) {
-            isValidBoard = false;
-            break;
-          }
-        }
-      }
-      
-      if (isValidBoard) {
-        // Check left clues
-        for (let row = 0; row < SIZE; row++) {
-          if (leftClues[row] > 0 && countVisibleFromLeft(row) !== leftClues[row]) {
-            isValidBoard = false;
-            break;
-          }
-        }
-      }
-      
-      // Update state
-      isValid = isValidBoard;
-      isSolved = isValidBoard;
-      
-      // Show message
-      if (isValid) {
-        showMessage("Correct! Well done!", "success");
+      const valid = validateSolution();
+      if (valid) {
+        showMessage('Your solution is correct!', 'success');
+        isSolved = true;
       } else {
-        showMessage("Solution is incorrect. Try again!", "error");
+        showMessage('Your solution is incorrect. Keep trying!', 'error');
+      }
+      
+      isValid = valid;
+    }
+    
+    // Get hint
+    function getHint() {
+      if (isSolved) {
+        showMessage('You already solved this puzzle!', 'info');
+        return;
+      }
+      
+      // Get current puzzle solution
+      const solution = currentPuzzles[shuffledIndices[puzzleIndex]].grid;
+      
+      // Find an empty cell or incorrect cell
+      let hintCells = [];
+      
+      // First priority: Find incorrect cells
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) {
+          if (board[row][col] !== 0 && board[row][col] !== solution[row][col]) {
+            hintCells.push({ row, col });
+          }
+        }
+      }
+      
+      // Second priority: Find empty cells
+      if (hintCells.length === 0) {
+        for (let row = 0; row < SIZE; row++) {
+          for (let col = 0; col < SIZE; col++) {
+            if (board[row][col] === 0) {
+              hintCells.push({ row, col });
+            }
+          }
+        }
+      }
+      
+      if (hintCells.length === 0) {
+        showMessage('Your board looks correct! Click "Check Solution" to verify.', 'info');
+        return;
+      }
+      
+      // Select a random hint cell
+      const hintCell = hintCells[Math.floor(Math.random() * hintCells.length)];
+      const { row, col } = hintCell;
+      
+      // Place correct number
+      board[row][col] = solution[row][col];
+      document.getElementById(`cell-${row}-${col}`).textContent = solution[row][col];
+      
+      // Select the hint cell
+      if (selectedCell !== null) {
+        document.getElementById(`cell-${selectedCell.row}-${selectedCell.col}`).classList.remove('selected');
+      }
+      selectedCell = { row, col };
+      document.getElementById(`cell-${row}-${col}`).classList.add('selected');
+      
+      showMessage('Hint placed!', 'info');
+      
+      // Check if board is complete and valid after hint
+      const isComplete = checkBoardComplete();
+      if (isComplete) {
+        const isValidSolution = validateSolution();
+        if (isValidSolution) {
+          showMessage('Congratulations! The puzzle is solved!', 'success');
+          isSolved = true;
+        }
       }
     }
     
-    // Count visible buildings from top
-    function countVisibleFromTop(col) {
-      let visible = 0;
-      let maxHeight = 0;
+    // Show solution
+    function showSolution() {
+      const solution = currentPuzzles[shuffledIndices[puzzleIndex]].grid;
       
       for (let row = 0; row < SIZE; row++) {
-        if (board[row][col] > maxHeight) {
-          visible++;
-          maxHeight = board[row][col];
+        for (let col = 0; col < SIZE; col++) {
+          board[row][col] = solution[row][col];
+          document.getElementById(`cell-${row}-${col}`).textContent = solution[row][col];
         }
       }
       
-      return visible;
-    }
-    
-    // Count visible buildings from right
-    function countVisibleFromRight(row) {
-      let visible = 0;
-      let maxHeight = 0;
-      
-      for (let col = SIZE - 1; col >= 0; col--) {
-        if (board[row][col] > maxHeight) {
-          visible++;
-          maxHeight = board[row][col];
-        }
+      // Clear selection
+      if (selectedCell !== null) {
+        document.getElementById(`cell-${selectedCell.row}-${selectedCell.col}`).classList.remove('selected');
+        selectedCell = null;
       }
       
-      return visible;
-    }
-    
-    // Count visible buildings from bottom
-    function countVisibleFromBottom(col) {
-      let visible = 0;
-      let maxHeight = 0;
-      
-      for (let row = SIZE - 1; row >= 0; row--) {
-        if (board[row][col] > maxHeight) {
-          visible++;
-          maxHeight = board[row][col];
-        }
-      }
-      
-      return visible;
-    }
-    
-    // Count visible buildings from left
-    function countVisibleFromLeft(row) {
-      let visible = 0;
-      let maxHeight = 0;
-      
-      for (let col = 0; col < SIZE; col++) {
-        if (board[row][col] > maxHeight) {
-          visible++;
-          maxHeight = board[row][col];
-        }
-      }
-      
-      return visible;
+      showMessage('Solution displayed!', 'info');
+      isSolved = true;
     }
     
     // Show message
-    function showMessage(text, type) {
-      messageEl.textContent = text;
+    function showMessage(message, type) {
+      messageEl.textContent = message;
       messageEl.className = `message ${type}`;
       messageEl.style.display = 'block';
     }
@@ -1023,7 +1267,41 @@
       messageEl.style.display = 'none';
     }
     
-    // Initialize the game
+    // Change board size
+    function changeBoardSize(size) {
+      // Only change if different size
+      if (SIZE === size) {
+        return;
+      }
+      
+      SIZE = size;
+      
+      // Update UI
+      boardSizeDisplay.textContent = SIZE;
+      maxHeightDisplay.textContent = SIZE;
+      
+      // Update active button
+      size4Btn.classList.toggle('active', size === 4);
+      size5Btn.classList.toggle('active', size === 5);
+      size6Btn.classList.toggle('active', size === 6);
+      
+      // Set appropriate puzzles
+      if (size === 4) {
+        currentPuzzles = verifiedPuzzles4x4;
+      } else if (size === 5) {
+        currentPuzzles = verifiedPuzzles5x5;
+      } else {
+        currentPuzzles = verifiedPuzzles6x6;
+      }
+      
+      // Reset puzzle index
+      puzzleIndex = 0;
+      
+      // Reinitialize game
+      init();
+    }
+    
+    // Initialize game on load
     init();
   </script>
 </body>
