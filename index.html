@@ -25,6 +25,12 @@
       font-weight: bold;
       margin-bottom: 24px;
     }
+
+    .timer-display {
+  font-size: 18px;
+  margin-bottom: 16px;
+  font-weight: bold;
+}
     
     .controls {
       display: flex;
@@ -239,6 +245,10 @@
 <body>
   <div class="container">
     <h1 class="title">Skyscraper Puzzle</h1>
+
+    <div class="timer-display">
+  Time: <span id="minutes">00</span>:<span id="seconds">00</span>
+</div>
     
     <div class="board-size-control">
       <button id="size-4-btn" class="size-btn active">4x4</button>
@@ -295,6 +305,11 @@
     let isSolved = false;
     let puzzleIndex = 0;
     let shuffledIndices = [];
+    /* Add timer variables here */
+let timerInterval;
+let startTime;
+let elapsedTime = 0;
+let timerRunning = false;
     
     // Predefined puzzles for 4x4
     const verifiedPuzzles4x4 = [
@@ -755,7 +770,83 @@
     size4Btn.addEventListener('click', () => changeBoardSize(4));
     size5Btn.addEventListener('click', () => changeBoardSize(5));
     size6Btn.addEventListener('click', () => changeBoardSize(6));
+
+    document.addEventListener('keydown', handleKeyPress);
     
+
+    // Add timer functions here
+// Start the timer
+function startTimer() {
+  if (!timerRunning) {
+    startTime = Date.now() - elapsedTime;
+    timerInterval = setInterval(updateTimer, 1000);
+    timerRunning = true;
+  }
+}
+
+// Stop the timer
+function stopTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    elapsedTime = Date.now() - startTime;
+    timerRunning = false;
+  }
+}
+
+// Reset the timer
+function resetTimer() {
+  stopTimer();
+  elapsedTime = 0;
+  updateTimerDisplay();
+}
+
+// Update the timer
+function updateTimer() {
+  const currentTime = Date.now();
+  elapsedTime = currentTime - startTime;
+  updateTimerDisplay();
+}
+
+// Update timer display
+function updateTimerDisplay() {
+  const totalSeconds = Math.floor(elapsedTime / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  
+  document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+  document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+}
+
+
+// Handle key press events
+function handleKeyPress(event) {
+  if (!selectedCell) return;
+  
+  // Numbers 1-9
+  if (event.key >= '1' && event.key <= '9' && parseInt(event.key) <= SIZE) {
+    placeNumber(parseInt(event.key));
+  }
+  // Delete or Backspace for erasing
+  else if (event.key === 'Delete' || event.key === 'Backspace') {
+    placeNumber(0);
+  }
+  // Arrow keys for navigation
+  else if (event.key === 'ArrowUp' && selectedCell.row > 0) {
+    selectCell(selectedCell.row - 1, selectedCell.col);
+  }
+  else if (event.key === 'ArrowDown' && selectedCell.row < SIZE - 1) {
+    selectCell(selectedCell.row + 1, selectedCell.col);
+  }
+  else if (event.key === 'ArrowLeft' && selectedCell.col > 0) {
+    selectCell(selectedCell.row, selectedCell.col - 1);
+  }
+  else if (event.key === 'ArrowRight' && selectedCell.col < SIZE - 1) {
+    selectCell(selectedCell.row, selectedCell.col + 1);
+  }
+}
+
+
+
     // Initialize the game
     function init() {
       shufflePuzzleIndices();
@@ -880,7 +971,7 @@
       // Add erase button
       const eraseBtn = document.createElement('button');
       eraseBtn.className = 'number-btn';
-      eraseBtn.textContent = 'X';
+      eraseBtn.textContent = 'Del';
       eraseBtn.addEventListener('click', () => placeNumber(0));
       numberInputEl.appendChild(eraseBtn);
     }
@@ -913,19 +1004,27 @@
       hideMessage();
       isValid = null;
       isSolved = false;
+
+       resetTimer();
     }
     
     // Select a cell
-    function selectCell(row, col) {
-      // Deselect previously selected cell
-      if (selectedCell !== null) {
-        document.getElementById(`cell-${selectedCell.row}-${selectedCell.col}`).classList.remove('selected');
-      }
-      
-      // Select new cell
-      selectedCell = { row, col };
-      document.getElementById(`cell-${row}-${col}`).classList.add('selected');
-    }
+    // Select a cell
+function selectCell(row, col) {
+  // Start timer on first cell selection
+  if (!timerRunning) {
+    startTimer();
+  }
+  
+  // Deselect previously selected cell
+  if (selectedCell !== null) {
+    document.getElementById(`cell-${selectedCell.row}-${selectedCell.col}`).classList.remove('selected');
+  }
+  
+  // Select new cell
+  selectedCell = { row, col };
+  document.getElementById(`cell-${row}-${col}`).classList.add('selected');
+}
     
     // Place number in selected cell
     function placeNumber(num) {
@@ -1230,6 +1329,8 @@
         if (isValidSolution) {
           showMessage('Congratulations! The puzzle is solved!', 'success');
           isSolved = true;
+
+          stopTimer();
         }
       }
     }
@@ -1253,6 +1354,8 @@
       
       showMessage('Solution displayed!', 'info');
       isSolved = true;
+
+      stopTimer();
     }
     
     // Show message
