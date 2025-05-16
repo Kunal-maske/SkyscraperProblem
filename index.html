@@ -257,8 +257,11 @@
     </div>
     
     <div class="controls">
-      <button id="next-puzzle-btn" class="btn">Next Puzzle (<span id="puzzle-index">1</span>/<span id="puzzle-count">15</span>)</button>
+      <button id="prev-puzzle-btn" class="btn">Previous Puzzle</button>
       <button id="reset-btn" class="btn">Reset</button>
+      <button id="next-puzzle-btn" class="btn">Next Puzzle (<span id="puzzle-index">1</span>/<span id="puzzle-count">15</span>)</button>
+      
+      
     </div>
     
     <div id="board-container" class="board-container">
@@ -772,6 +775,8 @@ let timerRunning = false;
     size6Btn.addEventListener('click', () => changeBoardSize(6));
 
     document.addEventListener('keydown', handleKeyPress);
+
+    document.getElementById('prev-puzzle-btn').addEventListener('click', prevPuzzle);
     
 
     // Add timer functions here
@@ -971,7 +976,7 @@ function handleKeyPress(event) {
       // Add erase button
       const eraseBtn = document.createElement('button');
       eraseBtn.className = 'number-btn';
-      eraseBtn.textContent = 'Del';
+      eraseBtn.textContent = 'Del.';
       eraseBtn.addEventListener('click', () => placeNumber(0));
       numberInputEl.appendChild(eraseBtn);
     }
@@ -1220,6 +1225,12 @@ function selectCell(row, col) {
       puzzleIndex = (puzzleIndex + 1) % currentPuzzles.length;
       loadPuzzle();
     }
+
+    // Previous puzzle
+function prevPuzzle() {
+  puzzleIndex = (puzzleIndex - 1 + currentPuzzles.length) % currentPuzzles.length;
+  loadPuzzle();
+}
     
     // Reset puzzle
     function resetPuzzle() {
